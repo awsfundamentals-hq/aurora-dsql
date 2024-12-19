@@ -1,68 +1,67 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyEventV2, APIGatewayProxyResult } from 'aws-lambda';
 import { connectToDatabase } from './db-utils';
-
-const createNote = async (event: APIGatewayProxyEvent, db: any) => {
-  const note = JSON.parse(event.body || '{}');
-  const newNote = await db.mutation.createNote({ data: note });
-  return {
-    statusCode: 200,
-    body: JSON.stringify(newNote),
-  };
-};
-
-const getNotes = async (db: any) => {
-  const notes = await db.query.notes();
-  return {
-    statusCode: 200,
-    body: JSON.stringify(notes),
-  };
-};
-
-const updateNote = async (event: APIGatewayProxyEvent, db: any) => {
-  const noteId = event.path.split('/').pop();
-  const note = JSON.parse(event.body || '{}');
-  const updatedNote = await db.mutation.updateNote({
-    where: { id: noteId },
-    data: note,
-  });
-  return {
-    statusCode: 200,
-    body: JSON.stringify(updatedNote),
-  };
-};
-
-const deleteNote = async (event: APIGatewayProxyEvent, db: any) => {
-  const noteId = event.path.split('/').pop();
-  const deletedNote = await db.mutation.deleteNote({ where: { id: noteId } });
-  return {
-    statusCode: 200,
-    body: JSON.stringify(deletedNote),
-  };
-};
+import { notes } from './db/schema';
 
 export const handler = async (
-  event: APIGatewayProxyEvent,
+  event: APIGatewayProxyEventV2,
   context: any
 ): Promise<APIGatewayProxyResult> => {
   context.callbackWaitsForEmptyEventLoop = false;
 
   const { db } = await connectToDatabase();
 
-  if (event.httpMethod === 'POST' && event.path === '/api/notes') {
-    return createNote(event, db);
+  console.info(JSON.stringify(event, null, 2));
+
+  const method = event.requestContext.http.method;
+  const path = event.requestContext.http.path;
+
+  switch (method) {
+    case 'POST':
+      if (path === '/api/notes') {
+        const note = JSON.parse(event.body || '{}');
+        const newNote = await db.insert(notes).values(note).execute();
+        return {
+          statusCode: 200,
+          body: JSON.stringify(newNote),
+        };
+      }
+      break;
+    case 'GET':
+      if (path === '/api/notes') {
+        const notes = await db.query.notes.findMany();
+        return {
+          statusCode: 200,
+          body: JSON.stringify(notes),
+        };
+      }
+      break;
+    case 'PUT':
+      if (path.startsWith('/api/notes/')) {
+        const noteId = path.split('/').pop()!;
+        const note = JSON.parse(event.body || '{}');
+        const updatedNote = await db
+          .update(notes)
+          .set(note)
+          .where({ id: noteId })
+          .execute();
+        return {
+          statusCode: 200,
+          body: JSON.stringify(updatedNote),
+        };
+      }
+      break;
+    case 'DELETE':
+      if (path.startsWith('/api/notes/')) {
+        const noteId = path.split('/').pop()!;
+        return {
+          statusCode: 200,
+          body: JSON.stringify({ message: `Deleted note with id: ${noteId}` }),
+        };
+      }
+      break;
   }
 
-  if (event.httpMethod === 'GET' && event.path === '/api/notes') {
-    return getNotes(db);
-  }
-
-  if (event.httpMethod === 'PUT' && event.path.startsWith('/api/notes/')) {
-    return updateNote(event, db);
-  }
-
-  if (event.httpMethod === 'DELETE' && event.path.startsWith('/api/notes/')) {
-    return deleteNote(event, db);
-  }
+  console.info(`Invalid request: ${event.httpMethod} ${event.path}`);
 
   return {
     statusCode: 404,

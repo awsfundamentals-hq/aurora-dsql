@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface Note {
   id: string;
@@ -15,12 +15,15 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchNotes = async () => {
-      const response = await fetch(`${apiUrl}/api/notes`);
+      setIsLoading(true);
+      const response = await fetch(`${apiUrl}api/notes`);
       const data = await response.json();
       setNotes(data);
+      setIsLoading(false);
     };
     fetchNotes();
   }, []);
@@ -56,7 +59,11 @@ export default function Home() {
         </a>
       </div>
       <div className="mt-8 flex flex-col items-center">
-        {notes.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-blue-400 rounded-full animate-spin"></div>
+          </div>
+        ) : notes.length === 0 ? (
           <p>No notes created yet</p>
         ) : (
           notes.map((note) => (

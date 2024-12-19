@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { toast, Toaster } from 'react-hot-toast';
 
 interface Note {
   id: string;
@@ -42,15 +43,16 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const fetchNotes = async () => {
-      setIsLoading(true);
-      const response = await fetch(`${apiUrl}api/notes`);
-      const data = await response.json();
-      setNotes(data);
-      setIsLoading(false);
-    };
     fetchNotes();
   }, []);
+
+  const assertResponse = async (response: Response, action: string) => {
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      toast.error(`Error ${action}: ${response.status} - ${errorMessage}`);
+      throw new Error(`Error ${action}: ${response.status}`);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -58,36 +60,48 @@ export default function Home() {
       return;
     }
     setIsCreating(true);
-    const response = await fetch(`${apiUrl}api/notes`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newNote),
-    });
-    const data = await response.json();
-    setNotes([...notes, data]);
-    setNewNote({ title: '', content: '' });
-    setShowForm(false);
-    setIsCreating(false);
-    fetchNotes();
+    try {
+      const response = await fetch(`${apiUrl}api/notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newNote),
+      });
+      await assertResponse(response, 'creating note');
+      const data = await response.json();
+      setNotes([...notes, data]);
+      setNewNote({ title: '', content: '' });
+      setShowForm(false);
+    } finally {
+      setIsCreating(false);
+      fetchNotes();
+    }
   };
 
   const handleDelete = async (id: string) => {
     setIsDeletingId(id);
-    await fetch(`${apiUrl}api/notes/${id}`, {
-      method: 'DELETE',
-    });
-    setNotes(notes.filter((note) => note.id !== id));
-    setIsDeletingId(null);
+    try {
+      const response = await fetch(`${apiUrl}api/notes/${id}`, {
+        method: 'DELETE',
+      });
+      await assertResponse(response, 'deleting note');
+      setNotes(notes.filter((note) => note.id !== id));
+    } finally {
+      setIsDeletingId(null);
+    }
   };
 
   const fetchNotes = async () => {
     setIsLoading(true);
-    const response = await fetch(`${apiUrl}api/notes`);
-    const data = await response.json();
-    setNotes(data);
-    setIsLoading(false);
+    try {
+      const response = await fetch(`${apiUrl}api/notes`);
+      await assertResponse(response, 'fetching notes');
+      const data = await response.json();
+      setNotes(data);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const LoadingAnimation = () => (
@@ -98,6 +112,9 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center">
+      <div>
+        <Toaster />
+      </div>
       <nav className="w-full flex items-center justify-between py-4 px-8 bg-[#242E41]">
         <Image src="/logo.png" alt="Logo" width={60} height={60} />
         <div id="title" className="flex items-center mx-auto">
@@ -111,7 +128,8 @@ export default function Home() {
           <div className="text-center">
             <h1 className="text-2xl font-bold text-white">Aurora DSQL</h1>
             <p className="text-sm font-semibold text-gray-300">
-              Fully-Managed Serverless SQL on <span className="text-[#FF9900] font-bold">AWS</span>
+              Fully-Managed Serverless SQL on{' '}
+              <span className="text-[#FF9900] font-bold">AWS</span>
             </p>
           </div>
         </div>

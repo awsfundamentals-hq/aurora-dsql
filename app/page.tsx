@@ -17,7 +17,6 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
   const [newNote, setNewNote] = useState({ title: '', content: '' });
   const [isCreating, setIsCreating] = useState(false);
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
@@ -60,6 +59,7 @@ export default function Home() {
       return;
     }
     setIsCreating(true);
+    setIsLoading(true);
     try {
       const response = await fetch(`${apiUrl}api/notes`, {
         method: 'POST',
@@ -72,7 +72,6 @@ export default function Home() {
       const data = await response.json();
       setNotes([...notes, data]);
       setNewNote({ title: '', content: '' });
-      setShowForm(false);
     } finally {
       setIsCreating(false);
       fetchNotes();
@@ -155,9 +154,7 @@ export default function Home() {
             type="text"
             placeholder="Title"
             value={newNote.title}
-            onChange={(e) =>
-              setNewNote({ ...newNote, title: e.target.value })
-            }
+            onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
             className="border border-gray-300 rounded-md px-4 py-2 mr-2"
           />
           <input
@@ -171,10 +168,10 @@ export default function Home() {
           />
           <button
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md"
+            className={`bg-blue-500 text-white px-4 py-2 rounded-md shadow-md ${isCreating ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={isCreating}
           >
-            {isCreating ? <LoadingAnimation /> : 'Add Note'}
+            Add Note
           </button>
         </form>
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -206,11 +203,13 @@ export default function Home() {
                     />
                   )}
                 </button>
-                <h2 className="text-xl font-bold">{note.title}</h2>
-                <p className="text-gray-600">{note.content}</p>
-                <p className="text-gray-500 text-sm">
-                  Created {formatRelativeTime(note.created_at)}
-                </p>
+                <div className="mr-8">
+                  <h2 className="text-xl font-bold">{note.title}</h2>
+                  <p className="text-gray-600">{note.content}</p>
+                  <p className="text-gray-500 text-sm">
+                    Created {formatRelativeTime(note.created_at)}
+                  </p>
+                </div>
               </div>
             ))
           )}

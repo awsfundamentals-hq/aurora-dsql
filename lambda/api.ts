@@ -17,9 +17,11 @@ export const handler = async (
     case 'POST':
       if (path === '/api/notes') {
         const note = JSON.parse(event.body || '{}');
-        console.info(`Adding new note:\n ${JSON.stringify(note, null, 2)}`);
         // add a random UUID as the ID of the note
         note.id = Math.random().toString(36).slice(2, 11);
+        // add the current UTC timestamp to the `created_at` field
+        note.created_at = new Date();
+        console.info(`Adding new note:\n ${JSON.stringify(note, null, 2)}`);
         const newNote = await db.insert(notes).values(note).execute();
         return {
           statusCode: 200,

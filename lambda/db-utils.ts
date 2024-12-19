@@ -1,4 +1,5 @@
 import { DsqlSigner } from '@aws-sdk/dsql-signer';
+import { execSync } from 'child_process';
 import dotenv from 'dotenv';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { readdirSync, readFileSync } from 'fs';
@@ -51,6 +52,8 @@ export const connectToDatabase = async () => {
 
 const dropDatabase = async () => {
   console.info(`Dropping all tables in ${clusterIdentifier}`);
+  // delete the drizzle folder
+  execSync(`rm -rf ${__dirname}/../drizzle`);
   const { db, client } = await connectToDatabase();
   const tables = (
     await db.execute(`
@@ -74,13 +77,16 @@ const runMigration = async () => {
   // await migrate(db, { migrationsFolder: `${__dirname}/../drizzle` });
 
   // Let's do the migration manually for now
-  // 1. create a table where we store which migrations have been run
+  // 1. run the drizzle migration command
+  const output = execSync(`cd ${__dirname}/.. && npx drizzle-kit generate`);
+  console.info(output.toString());
+  // 2. create a table where we store which migrations have been run
   await db.execute(`
     CREATE TABLE IF NOT EXISTS migrations (
       migration_name VARCHAR(255) PRIMARY KEY
     );
   `);
-  // 2. let's run the migrations
+  // 3. let's run the migrations
   // but only the ones that haven't been run yet
   const alreadyExecuted = (
     await db.execute(`SELECT migration_name FROM migrations;`)
@@ -94,7 +100,7 @@ const runMigration = async () => {
     console.info(`Running migration: ${file}`);
     const sql = readFileSync(`${__dirname}/../drizzle/${file}`, 'utf-8');
     await db.execute(sql);
-    // 3. let's store the migration in the migrations table
+    // 4. let's store the migration in the migrations table
     await db.execute(
       `INSERT INTO migrations (migration_name) VALUES ('${file}');`
     );

@@ -1,8 +1,8 @@
-import { integer, char, pgTable, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 export const notes = pgTable('notes', {
-  id: integer().primaryKey(),
-  title: char(),
-  content: char(),
+  id: varchar().primaryKey(),
+  title: varchar(),
+  content: varchar(),
   created_at: timestamp(),
 });

@@ -1,5 +1,5 @@
 {
-  "id": "cc618177-9d2a-4480-9e4f-b2044ca80937",
+  "id": "d279af49-4b04-4656-a0d2-865b609e455b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -10,19 +10,19 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "integer",
+          "type": "varchar",
           "primaryKey": true,
           "notNull": true
         },
         "title": {
           "name": "title",
-          "type": "char",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": false
         },
         "content": {
           "name": "content",
-          "type": "char",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": false
         },

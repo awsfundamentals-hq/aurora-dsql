@@ -10,8 +10,6 @@ export const handler = async (
 
   const { db } = await connectToDatabase();
 
-  console.info(JSON.stringify(event, null, 2));
-
   const method = event.requestContext.http.method;
   const path = event.requestContext.http.path;
 
@@ -19,6 +17,9 @@ export const handler = async (
     case 'POST':
       if (path === '/api/notes') {
         const note = JSON.parse(event.body || '{}');
+        console.info(`Adding new note:\n ${JSON.stringify(note, null, 2)}`);
+        // add a random UUID as the ID of the note
+        note.id = Math.random().toString(36).slice(2, 11);
         const newNote = await db.insert(notes).values(note).execute();
         return {
           statusCode: 200,

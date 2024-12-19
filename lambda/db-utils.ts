@@ -9,6 +9,22 @@ let clusterIdentifier = process.env.CLUSTER_IDENTIFIER!;
 
 let client: Client | null = null;
 
+const parseCommandLineArgs = <T extends Record<string, string>>() => {
+  const args = process.argv.slice(2);
+  const parsedArgs: T = {} as T;
+
+  for (const arg of args) {
+    if (arg.startsWith('--')) {
+      const [key, value] = arg.slice(2).split('=');
+      if (key && value) {
+        parsedArgs[key as keyof T] = value as T[keyof T];
+      }
+    }
+  }
+
+  return parsedArgs;
+};
+
 export const connectToDatabase = async () => {
   if (!client) {
     const signer = new DsqlSigner({
@@ -31,6 +47,24 @@ export const connectToDatabase = async () => {
     schema: { notes },
   });
   return { db, client };
+};
+
+const dropDatabase = async () => {
+  console.info(`Dropping all tables in ${clusterIdentifier}`);
+  const { db, client } = await connectToDatabase();
+  const tables = (
+    await db.execute(`
+    SELECT tablename
+    FROM pg_tables
+    WHERE schemaname = 'public';
+  `)
+  ).rows.map((row) => row.tablename) as string[];
+  for await (const table of tables) {
+    await db.execute(`DROP TABLE ${table} CASCADE;`);
+    console.info(`Table ${table} has been dropped`);
+  }
+  console.info(`All tables have been dropped`);
+  await client.end();
 };
 
 const runMigration = async () => {
@@ -75,7 +109,18 @@ const runMigration = async () => {
 // please run `npx drizzle-kit migrate` before to generate
 // the migration files and the types for drizzle
 if (!process.env.AWS_REGION) {
+  const { cmd } = parseCommandLineArgs<{ cmd: string }>();
   dotenv.config({ path: `${__dirname}/../.env` });
   clusterIdentifier = process.env.CLUSTER_IDENTIFIER!;
-  runMigration();
+  switch (cmd) {
+    case 'drop':
+      dropDatabase();
+      break;
+    case 'migrate':
+      runMigration();
+      break;
+    default:
+      console.error(`Unknown command: ${cmd}`);
+      process.exit(1);
+  }
 }

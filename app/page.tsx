@@ -16,6 +16,8 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [newNote, setNewNote] = useState({ title: '', content: '' });
 
   useEffect(() => {
     const fetchNotes = async () => {
@@ -27,6 +29,25 @@ export default function Home() {
     };
     fetchNotes();
   }, []);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (newNote.title.trim() === '' || newNote.content.trim() === '') {
+      // Handle empty title or content
+      return;
+    }
+    const response = await fetch(`${apiUrl}api/notes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newNote),
+    });
+    const data = await response.json();
+    setNotes([...notes, data]);
+    setNewNote({ title: '', content: '' });
+    setShowForm(false);
+  };
 
   return (
     <div className="flex flex-col items-center pt-20">
@@ -57,7 +78,39 @@ export default function Home() {
           />
           Open Aurora Console
         </a>
+        <button
+          className="bg-green-500 text-white px-4 py-2 rounded-md shadow-md ml-4"
+          onClick={() => setShowForm(true)}
+        >
+          +
+        </button>
       </div>
+      {showForm && (
+        <form onSubmit={handleSubmit} className="mt-4">
+          <input
+            type="text"
+            placeholder="Title"
+            value={newNote.title}
+            onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
+            className="border border-gray-300 rounded-md px-4 py-2 mr-2"
+          />
+          <input
+            type="text"
+            placeholder="Content"
+            value={newNote.content}
+            onChange={(e) =>
+              setNewNote({ ...newNote, content: e.target.value })
+            }
+            className="border border-gray-300 rounded-md px-4 py-2 mr-2"
+          />
+          <button
+            type="submit"
+            className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md"
+          >
+            Add Note
+          </button>
+        </form>
+      )}
       <div className="mt-8 flex flex-col items-center">
         {isLoading ? (
           <div className="flex items-center justify-center">

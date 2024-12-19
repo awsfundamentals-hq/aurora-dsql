@@ -33,6 +33,7 @@ export default $config({
     new sst.aws.Nextjs('frontend', {
       environment: {
         NEXT_PUBLIC_API_URL: api.url,
+        NEXT_PUBLIC_CLUSTER_IDENTIFIER: dsqlClusterIdentifier,
       },
     });
   },

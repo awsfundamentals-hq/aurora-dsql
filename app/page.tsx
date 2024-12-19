@@ -150,45 +150,34 @@ export default function Home() {
         </a>
       </nav>
       <div className="flex flex-col items-center pt-10">
-        <div className="mt-8 flex items-center justify-center">
+        <form onSubmit={handleSubmit} className="mt-4">
+          <input
+            type="text"
+            placeholder="Title"
+            value={newNote.title}
+            onChange={(e) =>
+              setNewNote({ ...newNote, title: e.target.value })
+            }
+            className="border border-gray-300 rounded-md px-4 py-2 mr-2"
+          />
+          <input
+            type="text"
+            placeholder="Content"
+            value={newNote.content}
+            onChange={(e) =>
+              setNewNote({ ...newNote, content: e.target.value })
+            }
+            className="border border-gray-300 rounded-md px-4 py-2 mr-2"
+          />
           <button
-            className="bg-green-500 text-white px-4 py-2 rounded-md shadow-md ml-4"
-            onClick={() => setShowForm(true)}
+            type="submit"
+            className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md"
             disabled={isCreating}
           >
             {isCreating ? <LoadingAnimation /> : 'Add Note'}
           </button>
-        </div>
-        {showForm && (
-          <form onSubmit={handleSubmit} className="mt-4">
-            <input
-              type="text"
-              placeholder="Title"
-              value={newNote.title}
-              onChange={(e) =>
-                setNewNote({ ...newNote, title: e.target.value })
-              }
-              className="border border-gray-300 rounded-md px-4 py-2 mr-2"
-            />
-            <input
-              type="text"
-              placeholder="Content"
-              value={newNote.content}
-              onChange={(e) =>
-                setNewNote({ ...newNote, content: e.target.value })
-              }
-              className="border border-gray-300 rounded-md px-4 py-2 mr-2"
-            />
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md"
-              disabled={isCreating}
-            >
-              {isCreating ? <LoadingAnimation /> : 'Add Note'}
-            </button>
-          </form>
-        )}
-        <div className="mt-8 flex flex-col items-center">
+        </form>
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {isLoading ? (
             <div className="flex items-center justify-center">
               <LoadingAnimation />
@@ -199,7 +188,7 @@ export default function Home() {
             notes.map((note) => (
               <div
                 key={note.id}
-                className="bg-white shadow-md rounded-md p-4 mb-4 relative"
+                className="bg-white shadow-md rounded-md p-4 relative"
               >
                 <button
                   className="absolute top-2 right-2"

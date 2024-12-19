@@ -21,6 +21,26 @@ export default function Home() {
   const [isCreating, setIsCreating] = useState(false);
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
 
+  const formatRelativeTime = (date: string) => {
+    const now = new Date();
+    const then = new Date(date);
+    const diff = now.getTime() - then.getTime();
+    const diffSeconds = Math.floor(diff / 1000);
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays > 0) {
+      return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    } else if (diffHours > 0) {
+      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    } else if (diffMinutes > 0) {
+      return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+    } else {
+      return `${diffSeconds} second${diffSeconds > 1 ? 's' : ''} ago`;
+    }
+  };
+
   useEffect(() => {
     const fetchNotes = async () => {
       setIsLoading(true);
@@ -70,11 +90,17 @@ export default function Home() {
     setIsLoading(false);
   };
 
+  const LoadingAnimation = () => (
+    <div className="relative w-8 h-8 rounded-full flex items-center justify-center">
+      <div className="w-3 h-3 rounded-full bg-[#242E41] animate-ping"></div>
+    </div>
+  );
+
   return (
     <div className="flex flex-col items-center">
       <nav className="w-full flex items-center justify-between py-4 px-8 bg-[#242E41]">
         <Image src="/logo.png" alt="Logo" width={60} height={60} />
-        <div className="flex items-center">
+        <div id="title" className="flex items-center mx-auto">
           <Image
             src="/aurora-logo.jpeg"
             alt="Aurora Logo"
@@ -85,38 +111,34 @@ export default function Home() {
           <div className="text-center">
             <h1 className="text-2xl font-bold text-white">Aurora DSQL</h1>
             <p className="text-sm font-semibold text-gray-300">
-              Fully-Managed Serverless SQL on AWS
+              Fully-Managed Serverless SQL on <span className="text-[#FF9900] font-bold">AWS</span>
             </p>
           </div>
         </div>
+        <a
+          href={`https://us-east-1.console.aws.amazon.com/dsql/clusters/${clusterIdentifier}/home?region=us-east-1`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-[#4B6AED] text-white px-4 py-2 rounded-md shadow-md flex items-center"
+        >
+          <Image
+            src="/bookmark.svg"
+            alt="Bookmark"
+            width={20}
+            height={20}
+            className="mr-2"
+          />
+          Open Aurora Console
+        </a>
       </nav>
-      <div className="flex flex-col items-center pt-20">
+      <div className="flex flex-col items-center pt-10">
         <div className="mt-8 flex items-center justify-center">
-          <a
-            href={`https://us-east-1.console.aws.amazon.com/dsql/clusters/${clusterIdentifier}/home?region=us-east-1`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-[#4B6AED] text-white px-4 py-2 rounded-md shadow-md flex items-center"
-          >
-            <Image
-              src="/bookmark.svg"
-              alt="Bookmark"
-              width={20}
-              height={20}
-              className="mr-2"
-            />
-            Open Aurora Console
-          </a>
           <button
             className="bg-green-500 text-white px-4 py-2 rounded-md shadow-md ml-4"
             onClick={() => setShowForm(true)}
             disabled={isCreating}
           >
-            {isCreating ? (
-              <div className="w-4 h-4 border-2 border-white rounded-full animate-spin"></div>
-            ) : (
-              '+'
-            )}
+            {isCreating ? <LoadingAnimation /> : 'Add Note'}
           </button>
         </div>
         {showForm && (
@@ -144,18 +166,14 @@ export default function Home() {
               className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md"
               disabled={isCreating}
             >
-              {isCreating ? (
-                <div className="w-4 h-4 border-2 border-white rounded-full animate-spin"></div>
-              ) : (
-                'Add Note'
-              )}
+              {isCreating ? <LoadingAnimation /> : 'Add Note'}
             </button>
           </form>
         )}
         <div className="mt-8 flex flex-col items-center">
           {isLoading ? (
             <div className="flex items-center justify-center">
-              <div className="w-8 h-8 border-4 border-blue-400 rounded-full animate-spin"></div>
+              <LoadingAnimation />
             </div>
           ) : notes.length === 0 ? (
             <p>No notes created yet</p>
@@ -171,7 +189,7 @@ export default function Home() {
                   disabled={isDeletingId === note.id}
                 >
                   {isDeletingId === note.id ? (
-                    <div className="w-4 h-4 border-2 border-gray-400 rounded-full animate-spin"></div>
+                    <LoadingAnimation />
                   ) : (
                     <Image
                       src="/trash.svg"
@@ -184,13 +202,34 @@ export default function Home() {
                 <h2 className="text-xl font-bold">{note.title}</h2>
                 <p className="text-gray-600">{note.content}</p>
                 <p className="text-gray-500 text-sm">
-                  Created at: {new Date(note.created_at).toLocaleString()}
+                  Created {formatRelativeTime(note.created_at)}
                 </p>
               </div>
             ))
           )}
         </div>
       </div>
+      <footer className="fixed bottom-0 left-0 right-0 bg-[#242E41] py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center">
+            <a
+              href="https://awsfundamentals.com/newsletter"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center font-semibold text-white hover:text-green-300 transition-colors"
+            >
+              <Image
+                src="/envelope.png"
+                alt="Newsletter"
+                width={48}
+                height={48}
+                className="mr-2"
+              />
+              9,300+ AWS Builders Are Already Leveling Up – Are You Next?
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

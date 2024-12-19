@@ -33,7 +33,6 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (newNote.title.trim() === '' || newNote.content.trim() === '') {
-      // Handle empty title or content
       return;
     }
     const response = await fetch(`${apiUrl}api/notes`, {
@@ -49,13 +48,20 @@ export default function Home() {
     setShowForm(false);
   };
 
+  const handleDelete = async (id: string) => {
+    await fetch(`${apiUrl}api/notes/${id}`, {
+      method: 'DELETE',
+    });
+    setNotes(notes.filter((note) => note.id !== id));
+  };
+
   return (
     <div className="flex flex-col items-center pt-20">
       <Image
         src="/aurora-logo.jpeg"
         alt="Aurora Logo"
-        width={200}
-        height={200}
+        width={100}
+        height={100}
         className="rounded-full shadow-md"
       />
       <h1 className="text-4xl font-bold mt-4 text-[#4B6AED]">Aurora DSQL</h1>
@@ -122,8 +128,14 @@ export default function Home() {
           notes.map((note) => (
             <div
               key={note.id}
-              className="bg-white shadow-md rounded-md p-4 mb-4"
+              className="bg-white shadow-md rounded-md p-4 mb-4 relative"
             >
+              <button
+                className="absolute top-2 right-2"
+                onClick={() => handleDelete(note.id)}
+              >
+                <Image src="/trash.svg" alt="Delete" width={20} height={20} />
+              </button>
               <h2 className="text-xl font-bold">{note.title}</h2>
               <p className="text-gray-600">{note.content}</p>
               <p className="text-gray-500 text-sm">

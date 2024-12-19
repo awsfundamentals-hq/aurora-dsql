@@ -1,4 +1,5 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyResult } from 'aws-lambda';
+import { eq } from 'drizzle-orm';
 import { connectToDatabase } from './db-utils';
 import { notes } from './db/schema';
 
@@ -45,7 +46,7 @@ export const handler = async (
         const updatedNote = await db
           .update(notes)
           .set(note)
-          .where({ id: noteId })
+          .where(eq(notes.id, noteId))
           .execute();
         return {
           statusCode: 200,
@@ -56,6 +57,7 @@ export const handler = async (
     case 'DELETE':
       if (path.startsWith('/api/notes/')) {
         const noteId = path.split('/').pop()!;
+        await db.delete(notes).where(eq(notes.id, noteId)).execute();
         return {
           statusCode: 200,
           body: JSON.stringify({ message: `Deleted note with id: ${noteId}` }),
@@ -64,7 +66,7 @@ export const handler = async (
       break;
   }
 
-  console.info(`Invalid request: ${event.httpMethod} ${event.path}`);
+  console.info(`Invalid request: ${method} ${path}`);
 
   return {
     statusCode: 404,

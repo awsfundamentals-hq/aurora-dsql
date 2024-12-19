@@ -1,39 +1,17 @@
-import { DsqlSigner } from '@aws-sdk/dsql-signer';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
-
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { users } from './db/schema';
-
-const clusterIdentifier = process.env.CLUSTER_IDENTIFIER!;
+import { connectToDatabase } from './db-utils';
 
 export const handler = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
+  context: any
 ): Promise<APIGatewayProxyResult> => {
-  const signer = new DsqlSigner({
-    hostname: `${clusterIdentifier}.dsql.us-east-1.on.aws`,
-    region: 'us-east-1',
-  });
-  const token = await signer.getDbConnectAdminAuthToken();
-  const client = new Client({
-    host: `${clusterIdentifier}.dsql.us-east-1.on.aws`,
-    user: 'admin',
-    password: token,
-    database: 'postgres',
-    port: 5432,
-    ssl: true,
-  });
+  context.callbackWaitsForEmptyEventLoop = false;
 
-  console.log('Connecting to database');
-
-  await client.connect();
-
-  const db = drizzle(client, { schema: { users } });
-
-  console.log('Database connected');
+  const { db } = await connectToDatabase();
+  const notes = await db.query.notes.findMany();
 
   return {
     statusCode: 200,
-    body: 'OK',
+    body: JSON.stringify(notes),
   };
 };

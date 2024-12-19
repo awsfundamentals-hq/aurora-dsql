@@ -39,21 +39,6 @@ export const handler = async (
         };
       }
       break;
-    case 'PUT':
-      if (path.startsWith('/api/notes/')) {
-        const noteId = path.split('/').pop()!;
-        const note = JSON.parse(event.body || '{}');
-        const updatedNote = await db
-          .update(notes)
-          .set(note)
-          .where(eq(notes.id, noteId))
-          .execute();
-        return {
-          statusCode: 200,
-          body: JSON.stringify(updatedNote),
-        };
-      }
-      break;
     case 'DELETE':
       if (path.startsWith('/api/notes/')) {
         const noteId = path.split('/').pop()!;

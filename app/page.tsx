@@ -18,6 +18,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [newNote, setNewNote] = useState({ title: '', content: '' });
+  const [isCreating, setIsCreating] = useState(false);
+  const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchNotes = async () => {
@@ -35,6 +37,7 @@ export default function Home() {
     if (newNote.title.trim() === '' || newNote.content.trim() === '') {
       return;
     }
+    setIsCreating(true);
     const response = await fetch(`${apiUrl}api/notes`, {
       method: 'POST',
       headers: {
@@ -46,13 +49,25 @@ export default function Home() {
     setNotes([...notes, data]);
     setNewNote({ title: '', content: '' });
     setShowForm(false);
+    setIsCreating(false);
+    fetchNotes();
   };
 
   const handleDelete = async (id: string) => {
+    setIsDeletingId(id);
     await fetch(`${apiUrl}api/notes/${id}`, {
       method: 'DELETE',
     });
     setNotes(notes.filter((note) => note.id !== id));
+    setIsDeletingId(null);
+  };
+
+  const fetchNotes = async () => {
+    setIsLoading(true);
+    const response = await fetch(`${apiUrl}api/notes`);
+    const data = await response.json();
+    setNotes(data);
+    setIsLoading(false);
   };
 
   return (
@@ -87,8 +102,13 @@ export default function Home() {
         <button
           className="bg-green-500 text-white px-4 py-2 rounded-md shadow-md ml-4"
           onClick={() => setShowForm(true)}
+          disabled={isCreating}
         >
-          +
+          {isCreating ? (
+            <div className="w-4 h-4 border-2 border-white rounded-full animate-spin"></div>
+          ) : (
+            '+'
+          )}
         </button>
       </div>
       {showForm && (
@@ -112,8 +132,13 @@ export default function Home() {
           <button
             type="submit"
             className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md"
+            disabled={isCreating}
           >
-            Add Note
+            {isCreating ? (
+              <div className="w-4 h-4 border-2 border-white rounded-full animate-spin"></div>
+            ) : (
+              'Add Note'
+            )}
           </button>
         </form>
       )}
@@ -133,8 +158,13 @@ export default function Home() {
               <button
                 className="absolute top-2 right-2"
                 onClick={() => handleDelete(note.id)}
+                disabled={isDeletingId === note.id}
               >
-                <Image src="/trash.svg" alt="Delete" width={20} height={20} />
+                {isDeletingId === note.id ? (
+                  <div className="w-4 h-4 border-2 border-gray-400 rounded-full animate-spin"></div>
+                ) : (
+                  <Image src="/trash.svg" alt="Delete" width={20} height={20} />
+                )}
               </button>
               <h2 className="text-xl font-bold">{note.title}</h2>
               <p className="text-gray-600">{note.content}</p>

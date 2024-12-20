@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Amazon Aurora DSQL Demo
+
+This project demonstrates how to easily bootstrap & use a Amazon Aurora DSQL database using SST (Serverless Stack) v3.
 
 ## Getting Started
 
-First, run the development server:
+To run this application, follow these steps:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Ensure you have Node.js installed on your system.
+2. Clone this repository to your local machine.
+3. Install the dependencies by running `pnpm i` in the project root directory.
+4. Run `pnpm run db:bootstrap` to set up our database.
+5. Run `pnpm run db:schema:migrate` to create the table.
+6. Start the development server by running:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+   ```
+   npx sst dev
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+This command will deploy the application to your AWS account and start the local development environment.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## About the Project
+
+This application is built using SST v3, which provides a powerful framework for building serverless applications.
+
+It showcases a simple notes app that uses Amazon Aurora DSQL as the database.
+The app allows you to create, read, update, and delete notes.
+
+## Project Structure
+
+- `sst.config.ts`: SST configuration file
+- `app/page.tsx`: Main Next.js page for the frontend
+- `lambda/api.ts`: Function that handles the API requests
+- `lambda/db/schema.ts`: Database schema with [Drizzle](https://github.com/drizzle-team/drizzle-orm)
+- `bootstrap-db.sh`: Script to bootstrap the database (there's no IaC support yet)
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+To learn more about SST and how to use it for serverless development, check out the [SST documentation](https://docs.sst.dev/).

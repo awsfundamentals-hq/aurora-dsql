@@ -8,8 +8,10 @@
     "lint": "next lint",
     "start": "next start",
     "db:bootstrap": "chmod +x ./bootstrap-db.sh && ./bootstrap-db.sh",
-    "db:schema:drop": "npx tsx lambda/db-utils --cmd=drop",
-    "db:schema:migrate": "npx tsx lambda/db-utils --cmd=migrate"
+    "db:schema:generate": "chmod +x ./drizzle-wrapper.sh && ./drizzle-wrapper.sh generate",
+    "db:schema:migrate": "chmod +x ./drizzle-wrapper.sh && ./drizzle-wrapper.sh migrate",
+    "db:schema:push": "chmod +x ./drizzle-wrapper.sh && ./drizzle-wrapper.sh push",
+    "db:schema:studio": "chmod +x ./drizzle-wrapper.sh && ./drizzle-wrapper.sh studio"
   },
   "dependencies": {
     "dotenv": "^16.4.7",

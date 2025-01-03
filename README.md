@@ -10,8 +10,10 @@ To run this application, follow these steps:
 2. Clone this repository to your local machine.
 3. Install the dependencies by running `pnpm i` in the project root directory.
 4. Run `pnpm run db:bootstrap` to set up our database.
-5. Run `pnpm run db:schema:migrate` to create the table.
-6. Start the development server by running:
+5. Run `pnpm run db:schema:migrate` to create the migration.
+6. Run `pnpm run db:schema:push` to push your migration to the database.
+7. Run `pnpm run db:schema:studio` run the Drizzle studio to view the database in your browser.
+8. Start the development server by running:
 
    ```
    npx sst dev
@@ -33,6 +35,7 @@ The app allows you to create, read, update, and delete notes.
 - `lambda/api.ts`: Function that handles the API requests
 - `lambda/db/schema.ts`: Database schema with [Drizzle](https://github.com/drizzle-team/drizzle-orm)
 - `bootstrap-db.sh`: Script to bootstrap the database (there's no IaC support yet)
+- `drizzle-wrapper.sh`: Script to get the database host and token before running Drizzle
 
 ## Learn More
 
